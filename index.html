@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Chat App</title>
+  <style>
+    * {
+        box-sizing: border-box;
+    }
+    .chat-box-wrapper {
+        display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: calc(100% - 142px);
+    }
+ .chat-box-main {
+      width: 300px;
+      margin: 0 auto;
+      border: 1px solid #ccc;
+      height: 100vh;
+    }
+    #messages {
+      list-style-type: none;
+      padding: 0;
+      margin: 8px 0;
+      overflow-y: scroll;
+      -ms-overflow-style: none;
+    }
+    #messages::-webkit-scrollbar { 
+  width: 0 !important;
+  display: none; 
+}
+    li.msg.right, li.msg.left {
+    padding: 10px;
+    border-radius: 5px;
+    width: 80%;
+    max-width: max-content;
+}
+li.msg.left {
+    background: #dcdcdc;
+    margin-right: auto;
+    margin-left: 10px;
+}
+li.msg.right{
+    background: #d9e8c0;
+    margin-left: auto;
+    margin-right: 10px;
+}
+#messages li {
+    margin-bottom: 10px;
+}
+    .chat-top h1{
+    background: #517da2;
+    padding: 10px 15px;
+    color: #fff;
+    font-size: 18px;
+    margin: 0;
+}
+input:focus-visible {
+    outline: none;
+}
+.chat-top {
+    width: 100%;
+    overflow: hidden;
+}
+.chat-top input {
+    width: 100%;
+    height: 50px;
+    background: #517da233;
+    border: none;
+    padding: 0 10px;
+}
+.chat-bottom {
+    background: #fff;
+    padding: 10px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #eeeaea;
+}
+.chat-bottom input {
+    width: 100%;
+    border: none;
+    padding: 10px;
+}
+button#send {
+    background: #517da2;
+    border: none;
+    color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 0 10px;
+}
+.alert {
+    text-align: center;
+}
+
+input#username {
+    border-bottom: 1px solid #a9a6a6;
+}
+
+
+  </style>
+</head>
+<body>
+  <div id="chat-container" class="chat-box-main">
+   <div class="chat-top"> <h1>Chat App</h1>
+    <input id="username" placeholder="Enter your name" autocomplete="off">  
+    <input id="tousername" placeholder="Enter Who You are Sending to.." autocomplete="off">
+ 
+  </div>
+    <div class="chat-box-wrapper">
+    <ul id="messages"></ul>
+  <div class="chat-bottom">  
+    <input id="message" placeholder="Enter your message" autocomplete="off">
+    <button id="send">Send</button></div>
+</div>
+  </div>
+</div>
+  <script defer src="/node_modules/socket.io/client-dist/socket.io.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script>
+    $(document).ready(() => {
+      const socket = io.connect('http://localhost:3002');
+      let username;
+
+      $('#username').on('keypress', (e) => {
+        if (e.keyCode === 13 && $('#username').val()) {
+          username = $('#username').val();
+          socket.emit('join', username);
+          $('#username').prop('disabled', true);
+        }
+      });
+
+      $('#send').click(() => {
+        
+        if ($('#message').val()) {         
+
+          var fromUser = $('#username').val();
+          var toUser = $('#tousername').val();
+          var message = $('#message').val();
+          
+          var msgData = {
+              'fromUser':fromUser,
+              'toUser':toUser,
+              'message':message
+          };       
+          socket.emit('message', msgData);
+          $('#message').val('');
+          $('#tousername').val('');
+        }
+      });
+
+      socket.on('message', (msg) => {
+        if(msg.user == username)
+        {
+            $('#messages').append($('<li class="msg right">').text(`${msg.user}: ${msg.text}`));
+        }
+        else
+        {
+            $('#messages').append($('<li class="msg left">').text(`${msg.user}: ${msg.text}`));
+        }
+            
+      });
+
+    //   socket.on('user-connected', (user) => {
+    //     $('#messages').append($('<li class="alert">').text(`${user} joined the chat`));
+    //   });
+
+    //   socket.on('user-disconnected', (user) => {
+    //     $('#messages').append($('<li class="alert">').text(`${user} left the chat`));
+    //  });
+    });
+  </script>
+</body>
+</html>
